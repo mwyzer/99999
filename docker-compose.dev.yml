@@ -1,0 +1,19 @@
+# ============================================================
+# docker-compose.dev.yml (opt-in development mode)
+# Use: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ============================================================
+
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+      - uploads_data:/app/uploads
+    command: go run .
+
+  frontend:
+    build:
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"

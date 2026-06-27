@@ -1,0 +1,55 @@
+# ============================================================
+# .dockerignore — Go Backend
+# ============================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment (jangan copy .env)
+.env
+.env.local
+.env.*.local
+
+# Test & coverage
+*_test.go
+*.test
+*.out
+coverage/
+
+# Build artifacts
+server
+server.exe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Vendor (use go modules)
+vendor/
+
+# Docker
+Dockerfile
+Dockerfile.dev
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+*.md
+docs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Uploads (akan dibuat ulang di container)
+uploads/*
+!uploads/.gitkeep

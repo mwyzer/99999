@@ -1,0 +1,94 @@
+# ============================================================
+# docker-compose.yml
+# Multi-Tenant Property Information System — MVP
+# ============================================================
+
+services:
+  # ==================== PostgreSQL 16 ====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ph-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-propertyhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-propertyhub_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-propertyhub}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "propertyhub", "-d", "propertyhub"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - ph-network
+
+  # ==================== Go Backend ====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ph-backend
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      APP_NAME: ${APP_NAME:-PropertyHub}
+      APP_ENV: ${APP_ENV:-production}
+      APP_PORT: ${APP_PORT:-8080}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-propertyhub}
+      DB_PASSWORD: ${DB_PASSWORD:-propertyhub_secret}
+      DB_NAME: ${DB_NAME:-propertyhub}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
+      DB_TIMEZONE: ${DB_TIMEZONE:-Asia/Jakarta}
+      DB_MAX_OPEN_CONNS: ${DB_MAX_OPEN_CONNS:-50}
+      DB_MAX_IDLE_CONNS: ${DB_MAX_IDLE_CONNS:-10}
+      DB_CONN_MAX_LIFETIME: ${DB_CONN_MAX_LIFETIME:-30}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRY_HOURS: ${JWT_EXPIRY_HOURS:-24}
+      BCRYPT_COST: ${BCRYPT_COST:-12}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/uploads}
+      MAX_UPLOAD_SIZE_MB: ${MAX_UPLOAD_SIZE_MB:-5}
+      MAX_PHOTOS_PER_LISTING: ${MAX_PHOTOS_PER_LISTING:-10}
+      RATE_LIMIT_LOGIN_PER_MINUTE: ${RATE_LIMIT_LOGIN_PER_MINUTE:-5}
+      RATE_LIMIT_GLOBAL_PER_MINUTE: ${RATE_LIMIT_GLOBAL_PER_MINUTE:-100}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      PLATFORM_NAME: ${PLATFORM_NAME:-PropertyHub}
+    volumes:
+      - uploads_data:/app/uploads
+    ports:
+      - "8080:8080"
+    networks:
+      - ph-network
+
+  # ==================== React Frontend ====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ph-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+    networks:
+      - ph-network
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local
+
+networks:
+  ph-network:
+    driver: bridge

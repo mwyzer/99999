@@ -1,0 +1,48 @@
+# ============================================================
+# .dockerignore — Root (Docker Compose context)
+# ============================================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+.github/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Documentation (tidak diperlukan di image)
+*.md
+docs/
+
+# Docker files
+Dockerfile
+Dockerfile.dev
+.dockerignore
+docker-compose*.yml
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node modules (frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Go artifacts
+backend/server
+backend/server.exe
+backend/*.exe
+backend/*.test
+backend/*.out
+backend/vendor/

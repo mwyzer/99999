@@ -1,0 +1,14 @@
+# ============================================================
+# Dockerfile.dev — Go Backend (Development)
+# Hot-reload via go run — keeps Go toolchain in the image
+# ============================================================
+
+FROM golang:1.25-alpine
+
+RUN apk add --no-cache git ca-certificates
+
+WORKDIR /app
+
+EXPOSE 8080
+
+CMD ["go", "run", "."]

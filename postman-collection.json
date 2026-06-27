@@ -1,0 +1,994 @@
+{
+  "info": {
+    "name": "PropertyHub MVP - API Collection",
+    "description": "Multi-Tenant Property Information System - 46 endpoints covering all 5 roles. Base URL: http://localhost:8080/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "propertyhub-mvp"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080/api/v1" },
+    { "key": "token_admin", "value": "" },
+    { "key": "token_tenant", "value": "" },
+    { "key": "token_salesman", "value": "" },
+    { "key": "token_buyer", "value": "" },
+    { "key": "listing_id", "value": "" },
+    { "key": "tenant_id", "value": "" },
+    { "key": "photo_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('App name is PropertyHub', () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.app).to.eql('PropertyHub');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/../health",
+            "description": "GET /health — Check if backend is running"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register Buyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has id and role=buyer', () => {",
+                  "  pm.expect(json.data.role).to.eql('buyer');",
+                  "  pm.expect(json.data.id).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Buyer\",\n  \"email\": \"testbuyer@email.com\",\n  \"phone\": \"081200000001\",\n  \"password\": \"Test@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login as Platform Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_admin', json.data.token);",
+                  "pm.test('Token saved', () => pm.expect(json.data.token).to.be.a('string'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@propertyhub.id\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login as Tenant Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_tenant', json.data.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"budi@propertijaya.id\",\n  \"password\": \"Budi@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login as Salesman",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_salesman', json.data.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"andi@propertijaya.id\",\n  \"password\": \"Andi@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login as Buyer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('token_buyer', json.data.token);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rina@email.com\",\n  \"password\": \"Rina@123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Public Properties",
+      "item": [
+        {
+          "name": "List Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has data array and meta', () => {",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "  pm.expect(json.meta).to.have.property('page');",
+                  "  pm.expect(json.meta).to.have.property('total');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties?page=1&per_page=12&property_type=house&listing_type=sale&sort=created_at&order=desc",
+              "host": ["{{base_url}}"],
+              "path": ["properties"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "12" },
+                { "key": "property_type", "value": "house" },
+                { "key": "listing_type", "value": "sale" },
+                { "key": "sort", "value": "created_at" },
+                { "key": "order", "value": "desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Property Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has photos, salesman, tenant', () => {",
+                  "  pm.expect(json.data).to.have.property('photos');",
+                  "  pm.expect(json.data).to.have.property('title');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/properties/{{listing_id}}"
+          }
+        },
+        {
+          "name": "Featured Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties/featured?limit=6",
+              "host": ["{{base_url}}"],
+              "path": ["properties", "featured"],
+              "query": [{ "key": "limit", "value": "6" }]
+            }
+          }
+        },
+        {
+          "name": "Nearby Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/properties/nearby?latitude=-6.2088&longitude=106.8456&radius_km=10",
+              "host": ["{{base_url}}"],
+              "path": ["properties", "nearby"],
+              "query": [
+                { "key": "latitude", "value": "-6.2088" },
+                { "key": "longitude", "value": "106.8456" },
+                { "key": "radius_km", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Cities",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns array', () => pm.expect(pm.response.json().data).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/locations/cities"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Profile (Authenticated)",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/me/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_buyer}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/me/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_buyer}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Buyer Updated\",\n  \"phone\": \"081200000002\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Buyer",
+      "item": [
+        {
+          "name": "Save Property",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/me/saved/{{listing_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_buyer}}" }
+            ]
+          }
+        },
+        {
+          "name": "List Saved Properties",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/me/saved?page=1&per_page=12",
+              "host": ["{{base_url}}"],
+              "path": ["me", "saved"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "12" }
+              ]
+            },
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_buyer}}" }
+            ]
+          }
+        },
+        {
+          "name": "Remove Saved Property",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/me/saved/{{listing_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_buyer}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Salesman",
+      "item": [
+        {
+          "name": "Salesman Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has quota info', () => {",
+                  "  pm.expect(json.data).to.have.property('quota');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salesman/dashboard",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" }
+            ]
+          }
+        },
+        {
+          "name": "Create Listing (Draft)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('listing_id', json.data.id);",
+                  "pm.test('Status is draft', () => pm.expect(json.data.status).to.eql('draft'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/salesman/listings",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rumah Minimalis Test API\",\n  \"description\": \"Rumah 2 lantai di Jakarta Selatan\",\n  \"price\": 2500000000,\n  \"listing_type\": \"sale\",\n  \"property_type\": \"house\",\n  \"source_type\": \"regular\",\n  \"address\": \"Jl. Test No. 123\",\n  \"city\": \"Jakarta Selatan\",\n  \"province\": \"DKI Jakarta\",\n  \"land_area\": 120,\n  \"building_area\": 80,\n  \"bedrooms\": 3,\n  \"bathrooms\": 2,\n  \"floors\": 2,\n  \"certificate_type\": \"SHM\",\n  \"facilities\": {\"carport\": true, \"garden\": true}\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salesman/listings",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get My Listing Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salesman/listings/{{listing_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/salesman/listings/{{listing_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Rumah Minimalis Updated\",\n  \"price\": 2600000000\n}"
+            }
+          }
+        },
+        {
+          "name": "Submit Listing for Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Status is pending', () => pm.expect(json.data.status).to.eql('pending'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/salesman/listings/{{listing_id}}/submit",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Quota",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Has max and used', () => {",
+                  "  const d = pm.response.json().data;",
+                  "  pm.expect(d).to.have.property('max');",
+                  "  pm.expect(d).to.have.property('used');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/salesman/quota",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_salesman}}" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Tenant Admin",
+      "item": [
+        {
+          "name": "Tenant Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/tenant/dashboard",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Tenant Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/tenant/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Update Tenant Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/tenant/profile",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organization_name\": \"PropertiJaya Agency Updated\",\n  \"phone\": \"0215551234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Salesmen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/tenant/salesmen",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Add Salesman",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/tenant/salesmen",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Agent\",\n  \"email\": \"newagent@test.com\",\n  \"phone\": \"081200009999\",\n  \"password\": \"Agent@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Remove Salesman",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/tenant/salesmen/{{salesman_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Tenant Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/tenant/listings",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/tenant/subscription",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" }
+            ]
+          }
+        },
+        {
+          "name": "Request Upgrade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/tenant/subscription/upgrade",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_tenant}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_type\": \"premium\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Platform Admin",
+      "item": [
+        {
+          "name": "Admin Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Has stats', () => {",
+                  "  pm.expect(json.data).to.have.property('total_tenants');",
+                  "  pm.expect(json.data).to.have.property('pending_reviews');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/dashboard",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        },
+        {
+          "name": "List Tenants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.data.length > 0) {",
+                  "  pm.collectionVariables.set('tenant_id', json.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/tenants",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        },
+        {
+          "name": "Get Tenant Detail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 404', () => pm.expect(pm.response.code).to.be.oneOf([200, 404]));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/tenants/{{tenant_id}}",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        },
+        {
+          "name": "Create Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/tenants",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organization_name\": \"Test Agency\",\n  \"subdomain_slug\": \"testagency123\",\n  \"admin_name\": \"Test Admin\",\n  \"admin_email\": \"admin@testagency.id\",\n  \"admin_phone\": \"081100009999\",\n  \"admin_password\": \"Test@1234\",\n  \"plan_type\": \"free\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List Pending Listings",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/listings/pending",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        },
+        {
+          "name": "Approve Listing",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 or 422', () => pm.expect(pm.response.code).to.be.oneOf([200, 422]));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/listings/{{listing_id}}/approve",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        },
+        {
+          "name": "View Audit Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/audit-logs",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

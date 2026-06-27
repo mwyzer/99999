@@ -1,0 +1,49 @@
+# ============================================================
+# .gitignore — Multi-Tenant Property Information System
+# ============================================================
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.docker
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependencies
+node_modules/
+vendor/
+
+# Test
+*.test
+*.out
+coverage/
+
+# Uploads (keep directory, ignore files)
+uploads/*
+!uploads/.gitkeep
+
+# Temporary
+*.log
+tmp/

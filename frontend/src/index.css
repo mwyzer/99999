@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply min-h-screen;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-primary-600 border border-primary-600 px-4 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors;
+  }
+  .btn-success {
+    @apply bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow;
+  }
+  .badge {
+    @apply inline-block px-2 py-0.5 text-xs font-semibold rounded-full;
+  }
+  .badge-sale {
+    @apply badge bg-green-100 text-green-700;
+  }
+  .badge-rent {
+    @apply badge bg-blue-100 text-blue-700;
+  }
+  .badge-auction {
+    @apply badge bg-amber-100 text-amber-700;
+  }
+  .badge-company {
+    @apply badge bg-purple-100 text-purple-700;
+  }
+
+  /* Watermark overlay — diagonal repeating text pattern */
+  .watermark-overlay {
+    @apply absolute inset-0 pointer-events-none select-none overflow-hidden;
+  }
+  .watermark-overlay::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    background: repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 50px,
+      rgba(255, 255, 255, 0.15) 50px,
+      rgba(255, 255, 255, 0.15) 52px
+    );
+  }
+}
