@@ -8,8 +8,11 @@ import (
 
 // Plan types
 const (
-	PlanFree    = "free"
-	PlanPremium = "premium"
+	PlanFree          = "free"
+	PlanPremium       = "premium"
+	PlanPendingUpgrade = "pending_upgrade"
+	PlanPendingFree   = "pending_free"
+	PlanPendingDisable = "pending_disable"
 )
 
 type Subscription struct {

@@ -127,23 +127,28 @@ func SeedAllData() {
 		DB.Create(&tenantAdmins[i])
 	}
 
-	// --- 3c. Salesmen (10 — 2 per tenant) ---
+	// --- 3c. Salesmen (15 — 3 per tenant) ---
 	salesmen := []models.User{
 		// PropertiJaya
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000001"), TenantID: up(tenants[0].ID), Email: "andi@propertijaya.id", PasswordHash: hp("Andi@123"), Name: "Andi Pratama", Phone: sp("081300000001"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000002"), TenantID: up(tenants[0].ID), Email: "siti@propertijaya.id", PasswordHash: hp("Siti@123"), Name: "Siti Nurhaliza", Phone: sp("081300000002"), Role: models.RoleSalesman, Status: models.UserStatusActive},
+		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000011"), TenantID: up(tenants[0].ID), Email: "fahrul@propertijaya.id", PasswordHash: hp("Fahrul@123"), Name: "Fahrul Rozi", Phone: sp("081300000011"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		// BankMaju
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000003"), TenantID: up(tenants[1].ID), Email: "rudi@bankmaju.id", PasswordHash: hp("Rudi@123"), Name: "Rudi Hermawan", Phone: sp("081300000003"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000004"), TenantID: up(tenants[1].ID), Email: "maya@bankmaju.id", PasswordHash: hp("Maya@123"), Name: "Maya Anggraini", Phone: sp("081300000004"), Role: models.RoleSalesman, Status: models.UserStatusActive},
+		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000012"), TenantID: up(tenants[1].ID), Email: "hendra@bankmaju.id", PasswordHash: hp("Hendra@123"), Name: "Hendra Setiawan", Phone: sp("081300000012"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		// GriyaSentosa
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000005"), TenantID: up(tenants[2].ID), Email: "eko@griyasentosa.id", PasswordHash: hp("Eko@123"), Name: "Eko Prasetyo", Phone: sp("081300000005"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000006"), TenantID: up(tenants[2].ID), Email: "nina@griyasentosa.id", PasswordHash: hp("Nina@123"), Name: "Nina Kusumawati", Phone: sp("081300000006"), Role: models.RoleSalesman, Status: models.UserStatusActive},
+		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000013"), TenantID: up(tenants[2].ID), Email: "riki@griyasentosa.id", PasswordHash: hp("Riki@123"), Name: "Riki Maulana", Phone: sp("081300000013"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		// MegaRaya
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000007"), TenantID: up(tenants[3].ID), Email: "bagus@megaraya.id", PasswordHash: hp("Bagus@123"), Name: "Bagus Wijaya", Phone: sp("081300000007"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000008"), TenantID: up(tenants[3].ID), Email: "lina@megaraya.id", PasswordHash: hp("Lina@123"), Name: "Lina Marlina", Phone: sp("081300000008"), Role: models.RoleSalesman, Status: models.UserStatusActive},
+		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000014"), TenantID: up(tenants[3].ID), Email: "irfan@megaraya.id", PasswordHash: hp("Irfan@123"), Name: "Irfan Hakim", Phone: sp("081300000014"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		// CiptaGraha
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000009"), TenantID: up(tenants[4].ID), Email: "tony@ciptagraha.id", PasswordHash: hp("Tony@123"), Name: "Tony Kusuma", Phone: sp("081300000009"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000010"), TenantID: up(tenants[4].ID), Email: "dian@ciptagraha.id", PasswordHash: hp("Dian@123"), Name: "Dian Permata", Phone: sp("081300000010"), Role: models.RoleSalesman, Status: models.UserStatusActive},
+		{ID: uuid.MustParse("e0000000-0000-0000-0000-000000000015"), TenantID: up(tenants[4].ID), Email: "selly@ciptagraha.id", PasswordHash: hp("Selly@123"), Name: "Selly Anggraeni", Phone: sp("081300000015"), Role: models.RoleSalesman, Status: models.UserStatusActive},
 	}
 	for i := range salesmen {
 		DB.Create(&salesmen[i])
@@ -388,6 +393,163 @@ func SeedAllData() {
 			Latitude: lat(-6.2243), Longitude: lat(106.8102), LandArea: nil, BuildingArea: fl(350), Bedrooms: nil, Bathrooms: iu(3), Floors: iu(1),
 			CertificateType: sp(models.CertSHGB), Facilities: models.Facilities{"listrik": "33000 Watt", "ac": "central", "lift": "private", "parkir": "6 mobil", "view": "city"}, Status: models.ListingStatusDraft,
 		},
+
+		// ── JABODETABEK EXPANSION (12 listings) ──
+
+		// Jakarta Selatan
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000021"), TenantID: tenants[0].ID, SalesmanID: salesmen[0].ID,
+			Title: "Rumah Mewah Kemang — Kolam Renang Pribadi", Description: sp("Rumah mewah di kawasan elite Kemang. Kolam renang pribadi, taman tropis, full furnished premium. Lingkungan ekspatriat."),
+			Price: 7500000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Kemang Raya No. 88, Jakarta Selatan"), City: sp("Jakarta Selatan"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.2618), Longitude: lat(106.8123), LandArea: fl(350), BuildingArea: fl(400), Bedrooms: iu(4), Bathrooms: iu(4), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: models.Facilities{"listrik": "6600 Watt", "air": "PDAM + Sumur", "carport": "2 mobil", "kolam_renang": "pribadi", "keamanan": "24 jam", "hadap": "Utara"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000022"), TenantID: tenants[0].ID, SalesmanID: salesmen[1].ID,
+			Title: "Apartemen 3BR — Pakubuwono Residence", Description: sp("Apartemen mewah 3 bedroom di Pakubuwono Residence. Full city view, furnitur Italian, akses langsung ke Senayan."),
+			Price: 4200000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeApartment, SourceType: models.SourceTypeRegular,
+			Address: sp("Pakubuwono Residence Tower Selatan Lt. 28"), City: sp("Jakarta Selatan"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.2377), Longitude: lat(106.7931), LandArea: nil, BuildingArea: fl(140), Bedrooms: iu(3), Bathrooms: iu(2), Floors: iu(1),
+			CertificateType: sp(models.CertSHGB), Facilities: models.Facilities{"listrik": "4400 Watt", "ac": "central", "lift": "private", "parkir": "2 mobil", "gym": "ya", "kolam_renang": "ya", "spa": "ya"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000023"), TenantID: tenants[0].ID, SalesmanID: salesmen[0].ID,
+			Title: "Rumah Baru Renovasi Tebet — Dekat Stasiun", Description: sp("Rumah siap huni setelah renovasi total. 5 menit ke Stasiun Tebet, dekat culinary spot terkenal."),
+			Price: 1650000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Tebet Barat Dalam No. 12"), City: sp("Jakarta Selatan"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.2348), Longitude: lat(106.8496), LandArea: fl(120), BuildingArea: fl(150), Bedrooms: iu(3), Bathrooms: iu(2), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: models.Facilities{"listrik": "2200 Watt", "air": "PDAM", "carport": "1 mobil", "hadap": "Timur", "dapur": "full furnished"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+
+		// Jakarta Pusat
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000024"), TenantID: tenants[1].ID, SalesmanID: salesmen[2].ID,
+			Title: "Rumah Tua Cikini — Potensi Komersial", Description: sp("Rumah tua di lokasi premium Cikini. Cocok direnovasi jadi kafe, resto, atau kantor kreatif. Dekat Taman Ismail Marzuki."),
+			Price: 5200000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Cikini Raya No. 45, Menteng"), City: sp("Jakarta Pusat"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.1889), Longitude: lat(106.8382), LandArea: fl(250), BuildingArea: fl(300), Bedrooms: iu(4), Bathrooms: iu(3), Floors: iu(1),
+			CertificateType: sp(models.CertSHM), Facilities: models.Facilities{"listrik": "3500 Watt", "air": "PDAM", "carport": "3 mobil", "akses_jalan": "jalan utama", "zoning": "komersial"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000025"), TenantID: tenants[1].ID, SalesmanID: salesmen[3].ID,
+			Title: "Sewa Apartemen Studio — Thamrin Residence", Description: sp("Studio fully furnished di pusat Jakarta. Connected ke Grand Indonesia, dekat MRT Bundaran HI."),
+			Price: 48000000, ListingType: models.ListingTypeRent, PropertyType: models.PropertyTypeApartment, SourceType: models.SourceTypeRegular,
+			Address: sp("Thamrin Residence Tower A Lt. 18"), City: sp("Jakarta Pusat"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.1927), Longitude: lat(106.8224), LandArea: nil, BuildingArea: fl(30), Bedrooms: iu(1), Bathrooms: iu(1), Floors: iu(1),
+			CertificateType: nil, Facilities: facilitiesApartment, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+
+		// Jakarta Timur
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000026"), TenantID: tenants[0].ID, SalesmanID: salesmen[1].ID,
+			Title: "Rumah Cluster Premium — Cipayung Jakarta Timur", Description: sp("Rumah baru di cluster premium. One-gate system, taman bermain, lingkungan keluarga. Dekat tol JORR."),
+			Price: 1250000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Cluster Taman Cinere, Cipayung"), City: sp("Jakarta Timur"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.3234), Longitude: lat(106.8976), LandArea: fl(108), BuildingArea: fl(130), Bedrooms: iu(3), Bathrooms: iu(2), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: facilitiesHouse, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000027"), TenantID: tenants[0].ID, SalesmanID: salesmen[0].ID,
+			Title: "Ruko Strategis Jatinegara — Pinggir Jalan Raya", Description: sp("Ruko 2 lantai di pinggir Jl. Jatinegara Timur. Cocok untuk showroom, toko material, atau minimarket."),
+			Price: 380000000, ListingType: models.ListingTypeRent, PropertyType: models.PropertyTypeShophouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Jatinegara Timur No. 78"), City: sp("Jakarta Timur"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.2147), Longitude: lat(106.8673), LandArea: fl(80), BuildingArea: fl(160), Bedrooms: nil, Bathrooms: iu(2), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: facilitiesRuko, Status: models.ListingStatusPending,
+		},
+
+		// Jakarta Barat & Utara
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000028"), TenantID: tenants[3].ID, SalesmanID: salesmen[6].ID,
+			Title: "Gudang Strategis Kembangan — Akses Tol", Description: sp("Gudang dengan akses langsung Tol Jakarta-Merak. Langit-langit tinggi 7m, kantor depan, parkir kontainer."),
+			Price: 950000000, ListingType: models.ListingTypeRent, PropertyType: models.PropertyTypeWarehouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Kembangan Raya KM 3, Jakbar"), City: sp("Jakarta Barat"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.1915), Longitude: lat(106.7389), LandArea: fl(600), BuildingArea: fl(550), Bedrooms: nil, Bathrooms: iu(2), Floors: iu(1),
+			CertificateType: sp(models.CertSHGB), Facilities: models.Facilities{"listrik": "16500 Watt", "air": "Sumur bor", "akses_kontainer": "ya", "plafon": "7 meter", "kantor": "ya", "parkir": "luas"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000029"), TenantID: tenants[3].ID, SalesmanID: salesmen[7].ID,
+			Title: "Apartemen Sea View — Pantai Indah Kapuk", Description: sp("Apartemen 2BR dengan view laut di PIK. Fully furnished modern, fasilitas resort: pool, gym, sauna."),
+			Price: 2150000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeApartment, SourceType: models.SourceTypeRegular,
+			Address: sp("PIK Avenue Tower Coral Lt. 32"), City: sp("Jakarta Utara"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.1093), Longitude: lat(106.7482), LandArea: nil, BuildingArea: fl(65), Bedrooms: iu(2), Bathrooms: iu(2), Floors: iu(1),
+			CertificateType: sp(models.CertSHGB), Facilities: models.Facilities{"listrik": "2200 Watt", "air": "PAM", "parkir": "1 mobil", "view": "laut", "gym": "ya", "kolam_renang": "ya", "sauna": "ya"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+
+		// Tangerang
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000030"), TenantID: tenants[2].ID, SalesmanID: salesmen[4].ID,
+			Title: "Rumah Cluster Premium Alam Sutera — Siap Huni", Description: sp("Rumah 2 lantai fully furnished di Alam Sutera. Cluster one-gate, dekat Flavor Bliss dan Living World."),
+			Price: 2800000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Cluster Sutera Feronia, Alam Sutera"), City: sp("Tangerang"), Province: sp("Banten"),
+			Latitude: lat(-6.2255), Longitude: lat(106.6495), LandArea: fl(160), BuildingArea: fl(220), Bedrooms: iu(4), Bathrooms: iu(3), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: facilitiesHouse, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000031"), TenantID: tenants[2].ID, SalesmanID: salesmen[5].ID,
+			Title: "Ruko Gading Serpong — Sektor Komersial", Description: sp("Ruko di pusat bisnis Gading Serpong. Ramai, cocok untuk F&B atau retail. 5 menit dari Summarecon Mall Serpong."),
+			Price: 4500000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeShophouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Gading Serpong Boulevard Blok AA-5"), City: sp("Tangerang"), Province: sp("Banten"),
+			Latitude: lat(-6.2446), Longitude: lat(106.6199), LandArea: fl(90), BuildingArea: fl(270), Bedrooms: nil, Bathrooms: iu(3), Floors: iu(3),
+			CertificateType: sp(models.CertSHGB), Facilities: facilitiesRuko, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+
+		// Bekasi
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000032"), TenantID: tenants[0].ID, SalesmanID: salesmen[0].ID,
+			Title: "Rumah Minimalis Summarecon Bekasi — Harga Terjangkau", Description: sp("Rumah minimalis modern di Summarecon Bekasi. Dekat mall, sekolah, dan Tol Becakayu. Investasi menjanjikan."),
+			Price: 850000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Cluster Taman Permata, Summarecon Bekasi"), City: sp("Bekasi"), Province: sp("Jawa Barat"),
+			Latitude: lat(-6.2417), Longitude: lat(107.0088), LandArea: fl(80), BuildingArea: fl(100), Bedrooms: iu(2), Bathrooms: iu(2), Floors: iu(2),
+			CertificateType: sp(models.CertSHM), Facilities: models.Facilities{"listrik": "1300 Watt", "air": "PDAM", "carport": "1 mobil", "keamanan": "24 jam", "hadap": "Selatan"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+
+		// ── NEW SALESMAN LISTINGS (5 — 1 per new salesman) ──
+		// Fahrul — PropertiJaya
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000033"), TenantID: tenants[0].ID, SalesmanID: salesmen[10].ID,
+			Title: "Sewa Apartemen Cozy — Senayan City", Description: sp("Apartemen studio cozy fully furnished. View GBK, dekat MRT Senayan, fasilitas lengkap."),
+			Price: 55000000, ListingType: models.ListingTypeRent, PropertyType: models.PropertyTypeApartment, SourceType: models.SourceTypeRegular,
+			Address: sp("Senayan City Tower A Lt. 20"), City: sp("Jakarta Pusat"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.2253), Longitude: lat(106.7983), LandArea: nil, BuildingArea: fl(32), Bedrooms: iu(1), Bathrooms: iu(1), Floors: iu(1),
+			CertificateType: nil, Facilities: facilitiesApartment, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		// Hendra — BankMaju
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000034"), TenantID: tenants[1].ID, SalesmanID: salesmen[11].ID,
+			Title: "Tanah Lelang Strategis — Ciledug Tangerang", Description: sp("Tanah lelang akses jalan utama, cocok untuk ruko atau gudang. Harga di bawah pasar."),
+			Price: 620000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeLand, SourceType: models.SourceTypeBankAuction,
+			Address: sp("Jl. Raden Patah, Ciledug"), City: sp("Tangerang"), Province: sp("Banten"),
+			Latitude: lat(-6.2333), Longitude: lat(106.7100), LandArea: fl(300), BuildingArea: nil, Bedrooms: nil, Bathrooms: nil, Floors: nil,
+			CertificateType: sp(models.CertSHM), Facilities: facilitiesLand, Status: models.ListingStatusDraft,
+		},
+		// Riki — GriyaSentosa
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000035"), TenantID: tenants[2].ID, SalesmanID: salesmen[12].ID,
+			Title: "Rumah Murah di Cimahi — Cocok Keluarga Muda", Description: sp("Rumah sederhana siap huni, lingkungan tenang. Dekat pasar dan sekolah. Cocok untuk keluarga muda."),
+			Price: 420000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeHouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Cihanjuang No. 78, Cimahi"), City: sp("Cimahi"), Province: sp("Jawa Barat"),
+			Latitude: lat(-6.8797), Longitude: lat(107.5423), LandArea: fl(80), BuildingArea: fl(90), Bedrooms: iu(2), Bathrooms: iu(1), Floors: iu(1),
+			CertificateType: sp(models.CertSHM), Facilities: models.Facilities{"listrik": "1300 Watt", "air": "PDAM", "carport": "1 mobil", "hadap": "Utara"}, Status: models.ListingStatusPending,
+		},
+		// Irfan — MegaRaya
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000036"), TenantID: tenants[3].ID, SalesmanID: salesmen[13].ID,
+			Title: "Ruko Baru 2 Lantai — Surabaya Barat", Description: sp("Ruko baru strategis di kawasan bisnis Surabaya Barat. Dekat perumahan elite, cocok untuk minimarket atau resto."),
+			Price: 1850000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeShophouse, SourceType: models.SourceTypeRegular,
+			Address: sp("Jl. Citra Raya Boulevard, Surabaya"), City: sp("Surabaya"), Province: sp("Jawa Timur"),
+			Latitude: lat(-7.2923), Longitude: lat(112.6755), LandArea: fl(85), BuildingArea: fl(170), Bedrooms: nil, Bathrooms: iu(2), Floors: iu(2),
+			CertificateType: sp(models.CertSHGB), Facilities: facilitiesRuko, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
+		// Selly — CiptaGraha
+		{
+			ID: uuid.MustParse("10000000-0000-0000-0000-000000000037"), TenantID: tenants[4].ID, SalesmanID: salesmen[14].ID,
+			Title: "Gudang Eks Perusahaan — Kawasan Berikat Nusantara", Description: sp("Gudang dengan spesifikasi industri, plafon tinggi, akses kontainer. Bekas aset perusahaan logistik."),
+			Price: 3200000000, ListingType: models.ListingTypeSale, PropertyType: models.PropertyTypeWarehouse, SourceType: models.SourceTypeCompanyAsset,
+			Address: sp("KBN Cakung Blok D-8, Jakarta Utara"), City: sp("Jakarta Utara"), Province: sp("DKI Jakarta"),
+			Latitude: lat(-6.1788), Longitude: lat(106.9350), LandArea: fl(800), BuildingArea: fl(750), Bedrooms: nil, Bathrooms: iu(2), Floors: iu(1),
+			CertificateType: sp(models.CertSHGB), Facilities: models.Facilities{"listrik": "33000 Watt", "air": "Sumur bor", "akses_kontainer": "ya", "plafon": "10 meter", "office": "ya", "parkir": "truk"}, Status: models.ListingStatusApproved, ApprovedBy: up(platformAdmin.ID), ApprovedAt: &now,
+		},
 	}
 	for i := range listings {
 		DB.Create(&listings[i])
@@ -441,6 +603,46 @@ func SeedAllData() {
 		// Listing 19 — 2 photos
 		{"20000000-0000-0000-0000-000000000022", listings[18].ID, 0},
 		{"20000000-0000-0000-0000-000000000023", listings[18].ID, 1},
+		// Listing 21 — Kemang (2 photos)
+		{"20000000-0000-0000-0000-000000000024", listings[20].ID, 0},
+		{"20000000-0000-0000-0000-000000000025", listings[20].ID, 1},
+		// Listing 22 — Pakubuwono (2 photos)
+		{"20000000-0000-0000-0000-000000000026", listings[21].ID, 0},
+		{"20000000-0000-0000-0000-000000000027", listings[21].ID, 1},
+		// Listing 23 — Tebet (1 photo)
+		{"20000000-0000-0000-0000-000000000028", listings[22].ID, 0},
+		// Listing 24 — Cikini (2 photos)
+		{"20000000-0000-0000-0000-000000000029", listings[23].ID, 0},
+		{"20000000-0000-0000-0000-000000000030", listings[23].ID, 1},
+		// Listing 25 — Thamrin (1 photo)
+		{"20000000-0000-0000-0000-000000000031", listings[24].ID, 0},
+		// Listing 26 — Cipayung (1 photo)
+		{"20000000-0000-0000-0000-000000000032", listings[25].ID, 0},
+		// Listing 27 — Jatinegara (1 photo)
+		{"20000000-0000-0000-0000-000000000033", listings[26].ID, 0},
+		// Listing 28 — Kembangan (2 photos)
+		{"20000000-0000-0000-0000-000000000034", listings[27].ID, 0},
+		{"20000000-0000-0000-0000-000000000035", listings[27].ID, 1},
+		// Listing 29 — PIK (2 photos)
+		{"20000000-0000-0000-0000-000000000036", listings[28].ID, 0},
+		{"20000000-0000-0000-0000-000000000037", listings[28].ID, 1},
+		// Listing 30 — Alam Sutera (2 photos)
+		{"20000000-0000-0000-0000-000000000038", listings[29].ID, 0},
+		{"20000000-0000-0000-0000-000000000039", listings[29].ID, 1},
+		// Listing 31 — Gading Serpong (1 photo)
+		{"20000000-0000-0000-0000-000000000040", listings[30].ID, 0},
+		// Listing 32 — Summarecon Bekasi (1 photo)
+		{"20000000-0000-0000-0000-000000000041", listings[31].ID, 0},
+		// Listing 33 — Senayan City, Fahrul (1 photo)
+		{"20000000-0000-0000-0000-000000000042", listings[32].ID, 0},
+		// Listing 34 — Ciledug, Hendra (1 photo)
+		{"20000000-0000-0000-0000-000000000043", listings[33].ID, 0},
+		// Listing 35 — Cimahi, Riki (1 photo)
+		{"20000000-0000-0000-0000-000000000044", listings[34].ID, 0},
+		// Listing 36 — Surabaya Barat, Irfan (1 photo)
+		{"20000000-0000-0000-0000-000000000045", listings[35].ID, 0},
+		// Listing 37 — KBN Cakung, Selly (1 photo)
+		{"20000000-0000-0000-0000-000000000046", listings[36].ID, 0},
 	}
 
 	for _, pd := range photoDefs {
@@ -509,9 +711,9 @@ func SeedAllData() {
 	log.Printf("[DB]  📊 %d subscriptions", len(subscriptions))
 	log.Printf("[DB]  📊 1 platform admin")
 	log.Printf("[DB]  📊 %d tenant admins", len(tenantAdmins))
-	log.Printf("[DB]  📊 %d salesmen", len(salesmen))
+	log.Printf("[DB]  📊 %d salesmen (3 per tenant)", len(salesmen))
 	log.Printf("[DB]  📊 %d buyers", len(buyers))
-	log.Printf("[DB]  📊 %d property listings", len(listings))
+	log.Printf("[DB]  📊 %d property listings (including 12 Jabodetabek)", len(listings))
 	log.Printf("[DB]  📊 %d property photos", len(photoDefs))
 	log.Printf("[DB]  📊 %d saved properties", len(saved))
 	log.Printf("[DB]  📊 %d audit logs", len(auditLogs))

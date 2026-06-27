@@ -57,6 +57,14 @@ export default function SalesmanDashboard() {
   const [mainTab, setMainTab] = useState(
     hash === "inquiries" ? "inquiries" : hash === "me" ? "me" : "listings",
   );
+
+  // Sync mainTab with hash changes from sidebar navigation
+  useEffect(() => {
+    if (hash === "inquiries") setMainTab("inquiries");
+    else if (hash === "me") setMainTab("me");
+    else if (hash === "all" || hash === "") setMainTab("listings");
+  }, [hash]);
+
   // Inquiries
   const [inquiries, setInquiries] = useState([]);
   const [inqLoading, setInqLoading] = useState(false);

@@ -23,6 +23,8 @@ import {
   User,
   Mail,
   Save,
+  ArrowUpCircle,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -38,6 +40,12 @@ export default function AdminDashboard() {
   const [pendingListings, setPendingListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState(hash || "overview");
+
+  // Sync tab with hash changes from sidebar navigation
+  useEffect(() => {
+    if (hash && hash !== "overview") setTab(hash);
+  }, [hash]);
+
   const [rejectForm, setRejectForm] = useState({ id: null, reason: "" });
   // Create tenant
   const [createForm, setCreateForm] = useState({
@@ -55,7 +63,10 @@ export default function AdminDashboard() {
   const [auditMeta, setAuditMeta] = useState({ page: 1, total_pages: 1 });
   const [auditFilters, setAuditFilters] = useState({ action: "", user_id: "" });
   // Change plan
-  const [planTenantId, setPlanTenantId] = useState(null);
+  const pendingUpgradeTenants = tenants.filter(
+    (t) => t.plan_type?.startsWith("pending_") && t.status === "active",
+  );
+
   // My Profile
   const [meForm, setMeForm] = useState({ name: "", phone: "" });
   const [savingMe, setSavingMe] = useState(false);
@@ -149,6 +160,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleDeleteTenant = async (id, name) => {
+    if (
+      !confirm(
+        `Yakin hapus tenant "${name}"? Semua data (user, listing, subscription) akan dihapus permanen.`,
+      )
+    )
+      return;
+    try {
+      await adminAPI.deleteTenant(id);
+      toast.success("Tenant berhasil dihapus!");
+      fetchAll();
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message || "Gagal menghapus tenant.",
+      );
+    }
+  };
+
   const handleCreateTenant = async (e) => {
     e.preventDefault();
     setCreating(true);
@@ -166,9 +195,17 @@ export default function AdminDashboard() {
       });
       fetchAll();
     } catch (err) {
-      toast.error(
-        err.response?.data?.error?.message || "Gagal membuat tenant.",
-      );
+      const details = err.response?.data?.error?.details;
+      if (details?.length) {
+        const fieldErrors = details
+          .map((d) => `• ${d.field}: ${d.message}`)
+          .join("\n");
+        toast.error(fieldErrors, { duration: 6000 });
+      } else {
+        toast.error(
+          err.response?.data?.error?.message || "Gagal membuat tenant.",
+        );
+      }
     } finally {
       setCreating(false);
     }
@@ -187,12 +224,15 @@ export default function AdminDashboard() {
 
   const handleChangePlan = async (tenantId, planType) => {
     try {
-      await adminAPI.changePlan(tenantId, planType);
+      await adminAPI.changePlan(tenantId, { plan_type: planType });
       toast.success(`Paket tenant diubah ke ${planType}!`);
-      setPlanTenantId(null);
       fetchAll();
-    } catch {
-      toast.error("Gagal mengubah paket.");
+    } catch (err) {
+      const msg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message ||
+        "Gagal mengubah paket.";
+      toast.error(msg);
     }
   };
 
@@ -225,6 +265,12 @@ export default function AdminDashboard() {
               value={dashboard.pending_reviews}
               color="bg-yellow-50 text-yellow-700"
             />
+            <StatCard
+              icon={<ArrowUpCircle className="w-5 h-5" />}
+              label="Upgrade Request"
+              value={dashboard.pending_upgrades || 0}
+              color="bg-blue-50 text-blue-700"
+            />
           </div>
         )}
 
@@ -235,6 +281,10 @@ export default function AdminDashboard() {
             {
               id: "pending",
               label: `Review Pending (${pendingListings.length})`,
+            },
+            {
+              id: "upgrades",
+              label: `Upgrade (${pendingUpgradeTenants.length})`,
             },
             { id: "tenants", label: "Daftar Tenant" },
             { id: "create-tenant", label: "Tambah Tenant" },
@@ -332,82 +382,201 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Upgrade Requests */}
+        {tab === "upgrades" && (
+          <div className="space-y-3">
+            {pendingUpgradeTenants.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-lg">Tidak ada permintaan.</p>
+                <p className="text-sm mt-1">
+                  Tenant yang mengajukan perubahan paket akan muncul di sini.
+                </p>
+              </div>
+            ) : (
+              pendingUpgradeTenants.map((t) => {
+                const reqLabel =
+                  t.plan_type === "pending_upgrade"
+                    ? "Ingin Premium"
+                    : t.plan_type === "pending_free"
+                      ? "Ingin Free"
+                      : "Ingin Nonaktif";
+                const approvePlan =
+                  t.plan_type === "pending_upgrade"
+                    ? "premium"
+                    : t.plan_type === "pending_free"
+                      ? "free"
+                      : null;
+                const isDisableReq = t.plan_type === "pending_disable";
+
+                return (
+                  <div
+                    key={t.id}
+                    className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-l-4 border-blue-400"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{t.organization_name}</p>
+                        <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          {reqLabel}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {t.subdomain_slug} · {t.total_listings} listing ·{" "}
+                        {t.total_users} user
+                      </p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      {isDisableReq ? (
+                        <>
+                          <button
+                            onClick={() => handleTenantAction(t.id, "suspend")}
+                            className="btn-danger text-xs py-1.5 px-3 flex items-center gap-1"
+                          >
+                            <Ban className="w-3.5 h-3.5" /> Nonaktifkan
+                          </button>
+                          <button
+                            onClick={() => handleChangePlan(t.id, "free")}
+                            className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Tolak
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleChangePlan(t.id, approvePlan)}
+                            className="btn-success text-xs py-1.5 px-3 flex items-center gap-1"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" /> Setujui
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleChangePlan(
+                                t.id,
+                                approvePlan === "premium" ? "free" : "premium",
+                              )
+                            }
+                            className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
+                          >
+                            <XCircle className="w-3.5 h-3.5" /> Tolak
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
         {/* Tenants */}
         {tab === "tenants" && (
           <div className="space-y-3">
-            {tenants.map((t) => (
-              <div
-                key={t.id}
-                className="card p-4 flex items-center justify-between"
-              >
-                <div>
-                  <p className="font-medium">{t.organization_name}</p>
-                  <p className="text-xs text-gray-500">
-                    {t.subdomain_slug} · {t.total_listings} listing ·{" "}
-                    {t.total_users} user
-                  </p>
-                  <span
-                    className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                      t.status === "active"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {t.status}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {/* Change plan */}
-                  {planTenantId === t.id ? (
-                    <div className="flex gap-1">
-                      <button
-                        onClick={() => handleChangePlan(t.id, "free")}
-                        className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+            {tenants.map((t) => {
+              const planLabel =
+                t.plan_type === "premium"
+                  ? "Premium"
+                  : t.plan_type === "pending_upgrade"
+                    ? "Menunggu Premium"
+                    : t.plan_type === "pending_free"
+                      ? "Menunggu Free"
+                      : t.plan_type === "pending_disable"
+                        ? "Menunggu Nonaktif"
+                        : "Free";
+              const planCls =
+                t.plan_type === "premium"
+                  ? "bg-amber-100 text-amber-700"
+                  : t.plan_type?.startsWith("pending_")
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-600";
+              const isPending = t.plan_type?.startsWith("pending_");
+              const isSuspended = t.status !== "active";
+
+              return (
+                <div
+                  key={t.id}
+                  className="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{t.organization_name}</p>
+                    <p className="text-xs text-gray-500">
+                      {t.subdomain_slug} · {t.total_listings} listing ·{" "}
+                      {t.total_users} user
+                    </p>
+                    <div className="flex gap-1.5 mt-1.5">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${planCls}`}
                       >
-                        Free
-                      </button>
-                      <button
-                        onClick={() => handleChangePlan(t.id, "premium")}
-                        className="text-xs bg-yellow-100 hover:bg-yellow-200 px-2 py-1 rounded"
+                        {planLabel}
+                      </span>
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          t.status === "active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
                       >
-                        Premium
-                      </button>
-                      <button
-                        onClick={() => setPlanTenantId(null)}
-                        className="text-xs text-gray-400 hover:text-gray-600 px-1"
-                      >
-                        ✕
-                      </button>
+                        {t.status === "active" ? "Aktif" : "Nonaktif"}
+                      </span>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setPlanTenantId(t.id)}
-                      className="text-primary-600 hover:text-primary-800 p-2"
-                      title="Ubah Paket"
-                    >
-                      <Crown className="w-4 h-4" />
-                    </button>
-                  )}
-                  {t.status === "active" ? (
-                    <button
-                      onClick={() => handleTenantAction(t.id, "suspend")}
-                      className="text-red-500 hover:text-red-700 p-2"
-                      title="Suspend"
-                    >
-                      <Ban className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleTenantAction(t.id, "activate")}
-                      className="text-green-500 hover:text-green-700 p-2"
-                      title="Activate"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                  )}
+                  </div>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    {isSuspended ? (
+                      <button
+                        onClick={() => handleTenantAction(t.id, "activate")}
+                        className="btn-success text-xs py-1.5 px-3 flex items-center gap-1"
+                        title="Aktifkan kembali"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> Aktifkan
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleChangePlan(t.id, "free")}
+                          className={`text-xs py-1.5 px-3 rounded font-medium transition-colors ${
+                            t.plan_type === "free"
+                              ? "bg-gray-200 text-gray-500 cursor-default"
+                              : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                          }`}
+                          disabled={t.plan_type === "free"}
+                        >
+                          Free
+                        </button>
+                        <button
+                          onClick={() => handleChangePlan(t.id, "premium")}
+                          className={`text-xs py-1.5 px-3 rounded font-medium transition-colors ${
+                            t.plan_type === "premium"
+                              ? "bg-amber-200 text-amber-600 cursor-default"
+                              : "bg-amber-100 hover:bg-amber-200 text-amber-700"
+                          }`}
+                          disabled={t.plan_type === "premium"}
+                        >
+                          Premium
+                        </button>
+                        <button
+                          onClick={() => handleTenantAction(t.id, "suspend")}
+                          className="text-xs py-1.5 px-3 rounded font-medium bg-red-50 hover:bg-red-100 text-red-600 transition-colors flex items-center gap-1"
+                          title="Nonaktifkan tenant"
+                        >
+                          <Ban className="w-3 h-3" /> Disable
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteTenant(t.id, t.organization_name)
+                          }
+                          className="text-xs py-1.5 px-2 rounded font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Hapus tenant permanen"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -22,6 +22,7 @@ import {
   Mail,
   Phone,
   Save,
+  Ban,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -111,14 +112,22 @@ export default function TenantDashboard() {
     }
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (planType = "premium") => {
     setUpgrading(true);
     try {
-      await tenantAPI.requestUpgrade();
-      toast.success("Permintaan upgrade telah dikirim!");
-      setSubscription((prev) => ({ ...prev, plan_type: "pending_upgrade" }));
-    } catch {
-      toast.error("Gagal mengirim permintaan upgrade.");
+      await tenantAPI.requestUpgrade(planType);
+      const pendingState =
+        planType === "premium"
+          ? "pending_upgrade"
+          : planType === "free"
+            ? "pending_free"
+            : "pending_disable";
+      toast.success("Permintaan telah dikirim! Menunggu persetujuan Admin.");
+      setSubscription((prev) => ({ ...prev, plan_type: pendingState }));
+    } catch (err) {
+      toast.error(
+        err.response?.data?.error?.message || "Gagal mengirim permintaan.",
+      );
     } finally {
       setUpgrading(false);
     }
@@ -279,7 +288,7 @@ export default function TenantDashboard() {
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${
                       subscription.plan_type === "premium"
                         ? "bg-amber-100 text-amber-700"
-                        : subscription.plan_type === "pending_upgrade"
+                        : subscription.plan_type?.startsWith("pending_")
                           ? "bg-blue-100 text-blue-700"
                           : "bg-gray-100 text-gray-600"
                     }`}
@@ -287,11 +296,91 @@ export default function TenantDashboard() {
                     {subscription.plan_type === "premium"
                       ? "Premium"
                       : subscription.plan_type === "pending_upgrade"
-                        ? "Menunggu Upgrade"
-                        : "Free"}
+                        ? "Menunggu Premium"
+                        : subscription.plan_type === "pending_free"
+                          ? "Menunggu Free"
+                          : subscription.plan_type === "pending_disable"
+                            ? "Menunggu Nonaktif"
+                            : "Free"}
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+
+                {/* Plan Toggle — 3 State Selector (Overview) */}
+                <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-xl mb-4">
+                  {[
+                    {
+                      plan: "free",
+                      label: "Free",
+                      desc: "5 Salesman · 5 Listing",
+                      icon: null,
+                    },
+                    {
+                      plan: "premium",
+                      label: "Premium",
+                      desc: "Unlimited",
+                      icon: Crown,
+                    },
+                    {
+                      plan: "disable",
+                      label: "Nonaktifkan",
+                      desc: "Hentikan layanan",
+                      icon: Ban,
+                    },
+                  ].map((opt) => {
+                    const isCurrent = subscription.plan_type === opt.plan;
+                    const isPending =
+                      (opt.plan === "premium" &&
+                        subscription.plan_type === "pending_upgrade") ||
+                      (opt.plan === "free" &&
+                        subscription.plan_type === "pending_free") ||
+                      (opt.plan === "disable" &&
+                        subscription.plan_type === "pending_disable");
+                    const isActive = isCurrent || isPending;
+                    const pendingAny =
+                      subscription.plan_type?.startsWith("pending_");
+
+                    return (
+                      <button
+                        key={opt.plan}
+                        onClick={() => {
+                          if (!isActive && !pendingAny) handleUpgrade(opt.plan);
+                        }}
+                        disabled={upgrading || isActive || pendingAny}
+                        className={`flex-1 flex flex-col items-center gap-1 py-3 px-2 rounded-lg text-center transition-all ${
+                          isPending
+                            ? "bg-blue-50 border-2 border-blue-300"
+                            : isActive
+                              ? "bg-white border-2 border-primary-500 shadow-sm"
+                              : "bg-white border border-gray-200 hover:border-gray-300 cursor-pointer"
+                        }`}
+                      >
+                        {isPending ? (
+                          <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                        ) : opt.icon ? (
+                          <opt.icon
+                            className={`w-4 h-4 ${
+                              isActive ? "text-amber-500" : "text-gray-400"
+                            }`}
+                          />
+                        ) : (
+                          <div className="w-4 h-4" />
+                        )}
+                        <span
+                          className={`text-xs font-semibold ${
+                            isActive ? "text-gray-900" : "text-gray-500"
+                          }`}
+                        >
+                          {isPending ? "Menunggu" : opt.label}
+                        </span>
+                        <span className="text-[10px] text-gray-400 leading-tight">
+                          {opt.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <p className="text-xl font-bold">
                       {subscription.usage?.salesmen_used || 0}/
@@ -327,28 +416,6 @@ export default function TenantDashboard() {
                     <p className="text-xs text-gray-500">Total Kuota Listing</p>
                   </div>
                 </div>
-                {subscription.plan_type === "free" && (
-                  <button
-                    onClick={handleUpgrade}
-                    disabled={upgrading}
-                    className="btn-primary flex items-center gap-2"
-                  >
-                    <Crown className="w-4 h-4" />
-                    {upgrading ? "Mengirim..." : "Upgrade ke Premium"}
-                  </button>
-                )}
-                {subscription.plan_type === "pending_upgrade" && (
-                  <p className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                    Permintaan upgrade Anda sedang diproses. Tim kami akan
-                    segera menghubungi.
-                  </p>
-                )}
-                {subscription.plan_type === "premium" && (
-                  <p className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                    Anda sudah menggunakan paket Premium. Nikmati semua fitur
-                    tanpa batasan!
-                  </p>
-                )}
               </div>
             )}
           </>
@@ -458,7 +525,7 @@ export default function TenantDashboard() {
                 className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${
                   subscription.plan_type === "premium"
                     ? "bg-amber-100 text-amber-700"
-                    : subscription.plan_type === "pending_upgrade"
+                    : subscription.plan_type?.startsWith("pending_")
                       ? "bg-blue-100 text-blue-700"
                       : "bg-gray-100 text-gray-600"
                 }`}
@@ -466,16 +533,96 @@ export default function TenantDashboard() {
                 {subscription.plan_type === "premium"
                   ? "Premium"
                   : subscription.plan_type === "pending_upgrade"
-                    ? "Menunggu Upgrade"
-                    : "Free"}
+                    ? "Menunggu Premium"
+                    : subscription.plan_type === "pending_free"
+                      ? "Menunggu Free"
+                      : subscription.plan_type === "pending_disable"
+                        ? "Menunggu Nonaktif"
+                        : "Free"}
               </span>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+
+            {/* Plan Toggle — 3 State Selector */}
+            <div className="flex items-center gap-3 p-5 bg-gray-50 rounded-xl mb-5">
+              {[
+                {
+                  plan: "free",
+                  label: "Free",
+                  desc1: "5 Salesman",
+                  desc2: "5 Listing / Salesman",
+                  icon: null,
+                },
+                {
+                  plan: "premium",
+                  label: "Premium",
+                  desc1: "Unlimited Salesman",
+                  desc2: "Unlimited Listing",
+                  icon: Crown,
+                },
+                {
+                  plan: "disable",
+                  label: "Nonaktifkan",
+                  desc1: "Hentikan",
+                  desc2: "layanan",
+                  icon: Ban,
+                },
+              ].map((opt) => {
+                const isCurrent = subscription.plan_type === opt.plan;
+                const isPending =
+                  (opt.plan === "premium" &&
+                    subscription.plan_type === "pending_upgrade") ||
+                  (opt.plan === "free" &&
+                    subscription.plan_type === "pending_free") ||
+                  (opt.plan === "disable" &&
+                    subscription.plan_type === "pending_disable");
+                const isActive = isCurrent || isPending;
+                const pendingAny =
+                  subscription.plan_type?.startsWith("pending_");
+
+                return (
+                  <button
+                    key={opt.plan}
+                    onClick={() => {
+                      if (!isActive && !pendingAny) handleUpgrade(opt.plan);
+                    }}
+                    disabled={upgrading || isActive || pendingAny}
+                    className={`flex-1 flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl text-center transition-all ${
+                      isPending
+                        ? "bg-blue-50 border-2 border-blue-300"
+                        : isActive
+                          ? "bg-white border-2 border-primary-500 shadow-sm"
+                          : "bg-white border border-gray-200 hover:border-gray-300 cursor-pointer"
+                    }`}
+                  >
+                    {isPending ? (
+                      <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                    ) : opt.icon ? (
+                      <opt.icon
+                        className={`w-5 h-5 ${isActive ? "text-amber-500" : "text-gray-400"}`}
+                      />
+                    ) : (
+                      <div className="w-5 h-5" />
+                    )}
+                    <span
+                      className={`text-sm font-bold ${isActive ? "text-gray-900" : "text-gray-500"}`}
+                    >
+                      {isPending ? "Menunggu" : opt.label}
+                    </span>
+                    <div className="text-[10px] text-gray-400 leading-tight">
+                      <p>{opt.desc1}</p>
+                      <p>{opt.desc2}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="p-3 bg-gray-50 rounded-lg">
                 <p className="text-xs text-gray-500">Paket</p>
                 <p className="font-bold text-lg capitalize">
-                  {subscription.plan_type === "pending_upgrade"
-                    ? "Free (Menunggu Upgrade)"
+                  {subscription.plan_type?.startsWith("pending_")
+                    ? "Free (Menunggu Persetujuan)"
                     : subscription.plan_type}
                 </p>
               </div>
@@ -501,28 +648,6 @@ export default function TenantDashboard() {
                 </p>
               </div>
             </div>
-            {subscription.plan_type === "free" && (
-              <button
-                onClick={handleUpgrade}
-                disabled={upgrading}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Crown className="w-4 h-4" />
-                {upgrading ? "Mengirim..." : "Upgrade ke Premium"}
-              </button>
-            )}
-            {subscription.plan_type === "pending_upgrade" && (
-              <p className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
-                Permintaan upgrade Anda sedang diproses. Tim kami akan segera
-                menghubungi.
-              </p>
-            )}
-            {subscription.plan_type === "premium" && (
-              <p className="text-sm text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
-                Anda sudah menggunakan paket Premium. Nikmati semua fitur tanpa
-                batasan!
-              </p>
-            )}
           </div>
         )}
 

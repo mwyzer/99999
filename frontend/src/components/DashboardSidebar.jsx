@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -16,8 +16,10 @@ import {
   MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const menuConfigs = {
   platform_admin: [
@@ -116,7 +118,14 @@ export default function DashboardSidebar({
   onToggleCollapse,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const menu = menuConfigs[role] || [];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const isActive = (item) => {
     if (item.exact) return location.pathname === item.to && !location.hash;
@@ -126,11 +135,7 @@ export default function DashboardSidebar({
 
   const handleClick = (item) => {
     if (item.hash) {
-      if (location.pathname === item.to) {
-        window.location.hash = item.hash;
-      } else {
-        window.location.href = `${item.to}#${item.hash}`;
-      }
+      navigate(`${item.to}#${item.hash}`, { replace: true });
     }
     if (onClose) onClose();
   };
@@ -206,6 +211,18 @@ export default function DashboardSidebar({
           );
         })}
       </nav>
+
+      {/* Logout */}
+      <div className="px-2 py-2 border-t border-gray-100">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+          title="Logout"
+        >
+          <LogOut className="w-5 h-5 shrink-0" />
+          {!collapsed && "Logout"}
+        </button>
+      </div>
 
       {/* Collapse toggle */}
       <div className="px-2 py-2 border-t border-gray-100">

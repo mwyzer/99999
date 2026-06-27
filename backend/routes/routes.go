@@ -134,6 +134,7 @@ func Setup(cfg *config.Config) *gin.Engine {
 		admin.GET("/tenants/:id", handlers.AdminGetTenant)
 		admin.POST("/tenants/:id/suspend", handlers.AdminSuspendTenant)
 		admin.POST("/tenants/:id/activate", handlers.AdminActivateTenant)
+		admin.DELETE("/tenants/:id", handlers.AdminDeleteTenant)
 		admin.PUT("/tenants/:id/plan", handlers.AdminChangePlan)
 		admin.GET("/listings/pending", handlers.AdminListPending)
 		admin.POST("/listings/:id/approve", handlers.AdminApproveListing)
@@ -154,6 +155,66 @@ func Setup(cfg *config.Config) *gin.Engine {
 		admin.POST("/locations", handlers.AdminCreateLocation)
 		admin.PUT("/locations/:id", handlers.AdminUpdateLocation)
 		admin.PUT("/tenants/:id/subscription", handlers.AdminChangePlanByID)
+	}
+
+	// ==================== MOBILE API v1 ====================
+	mobile := r.Group("/api/mobile/v1")
+	{
+		// Public — no auth required
+		mobileAuth := mobile.Group("/auth")
+		{
+			mobileAuth.POST("/login", middleware.RateLimitLogin(cfg), handlers.MobileLogin)
+			mobileAuth.POST("/register", middleware.RateLimitLogin(cfg), handlers.MobileRegister)
+		}
+
+		// Public properties
+		mobileProps := mobile.Group("/properties")
+		{
+			mobileProps.GET("", handlers.MobileListProperties)
+			mobileProps.GET("/:id", handlers.MobileGetPropertyDetail)
+		}
+
+		// Master data
+		mobile.GET("/property-types", handlers.MobilePropertyTypes)
+		mobile.GET("/facilities", handlers.MobileFacilities)
+		mobile.GET("/locations", handlers.MobileLocations)
+
+		// Authenticated
+		mobileAuthd := mobile.Group("")
+		mobileAuthd.Use(middleware.AuthRequired(cfg))
+		{
+			// Profile
+			mobileAuthd.GET("/profile", handlers.MobileGetProfile)
+			mobileAuthd.PUT("/profile", handlers.MobileUpdateProfile)
+
+			// Buyer
+			buyerGroup := mobileAuthd.Group("/buyer")
+			buyerGroup.Use(middleware.RequireRole(models.RoleBuyer))
+			{
+				buyerGroup.GET("/favorites", handlers.MobileListSaved)
+				buyerGroup.POST("/favorites/:propertyId", handlers.MobileToggleSave)
+				buyerGroup.GET("/inquiries", handlers.MobileListBuyerInquiries)
+				buyerGroup.POST("/inquiries", handlers.MobileCreateInquiry)
+			}
+
+			// Salesman
+			salesmanGroup := mobileAuthd.Group("/salesman")
+			salesmanGroup.Use(middleware.RequireRole(models.RoleSalesman, models.RoleTenantAdmin))
+			salesmanGroup.Use(middleware.TenantScope())
+			{
+				salesmanGroup.GET("/dashboard", handlers.MobileSalesmanDashboard)
+			}
+
+			// Tenant Admin
+			tenantGroup := mobileAuthd.Group("/tenant")
+			tenantGroup.Use(middleware.RequireRole(models.RoleTenantAdmin))
+			tenantGroup.Use(middleware.TenantScope())
+			{
+				tenantGroup.GET("/dashboard", handlers.MobileTenantDashboard)
+				tenantGroup.GET("/subscription", handlers.MobileTenantSubscription)
+				tenantGroup.POST("/subscription/upgrade", handlers.MobileTenantRequestUpgrade)
+			}
+		}
 	}
 
 	return r

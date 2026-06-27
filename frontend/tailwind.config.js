@@ -29,6 +29,23 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
+      transitionDuration: {
+        DEFAULT: "200ms",
+      },
+      animation: {
+        "fade-in": "fade-in 200ms ease-out",
+        "slide-up": "slide-up 200ms ease-out",
+      },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "slide-up": {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
     },
   },
   plugins: [],

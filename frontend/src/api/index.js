@@ -99,8 +99,8 @@ export const tenantAPI = {
   removeSalesman: (id) => api.delete(`/tenant/salesmen/${id}`),
   listListings: (params) => api.get("/tenant/listings", { params }),
   getSubscription: () => api.get("/tenant/subscription"),
-  requestUpgrade: () =>
-    api.post("/tenant/subscription/upgrade", { plan_type: "premium" }),
+  requestUpgrade: (planType = "premium") =>
+    api.post("/tenant/subscription/upgrade", { plan_type: planType }),
   // Inquiries
   listInquiries: (params) => api.get("/tenant/inquiries", { params }),
 };
@@ -113,6 +113,7 @@ export const adminAPI = {
   getTenant: (id) => api.get(`/admin/tenants/${id}`),
   suspendTenant: (id) => api.post(`/admin/tenants/${id}/suspend`),
   activateTenant: (id) => api.post(`/admin/tenants/${id}/activate`),
+  deleteTenant: (id) => api.delete(`/admin/tenants/${id}`),
   changePlan: (id, data) => api.put(`/admin/tenants/${id}/plan`, data),
   listPending: (params) => api.get("/admin/listings/pending", { params }),
   approveListing: (id) => api.post(`/admin/listings/${id}/approve`),

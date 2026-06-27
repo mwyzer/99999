@@ -312,14 +312,58 @@ func TenantGetSubscription(c *gin.Context) {
 }
 
 func TenantRequestUpgrade(c *gin.Context) {
+	tenantID := middleware.GetTenantID(c)
+
 	var req dto.RequestUpgradeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.ValidationError(c, "Beberapa field tidak valid. Silakan periksa kembali.", parseValidationErrors(err))
+		utils.ValidationError(c, "Field plan_type diperlukan (free, premium, atau disable).", nil)
+		return
+	}
+
+	var sub models.Subscription
+	if err := database.DB.Where("tenant_id = ?", tenantID).First(&sub).Error; err != nil {
+		utils.NotFound(c, "SUBSCRIPTION_NOT_FOUND", "Langganan tidak ditemukan.")
+		return
+	}
+
+	// Check for any existing pending request
+	if sub.PlanType == models.PlanPendingUpgrade ||
+		sub.PlanType == models.PlanPendingFree ||
+		sub.PlanType == models.PlanPendingDisable {
+		utils.Conflict(c, "REQUEST_PENDING", "Anda sudah memiliki permintaan yang sedang diproses.")
+		return
+	}
+
+	// Map request to target pending state
+	var targetPlan string
+	var message string
+	switch req.PlanType {
+	case "premium":
+		if sub.PlanType == models.PlanPremium {
+			utils.Conflict(c, "ALREADY_PREMIUM", "Anda sudah menggunakan paket Premium.")
+			return
+		}
+		targetPlan = models.PlanPendingUpgrade
+		message = "Permintaan upgrade ke Premium telah dikirim. Menunggu persetujuan Admin."
+	case "free":
+		if sub.PlanType == models.PlanFree {
+			utils.Conflict(c, "ALREADY_FREE", "Anda sudah menggunakan paket Free.")
+			return
+		}
+		targetPlan = models.PlanPendingFree
+		message = "Permintaan downgrade ke Free telah dikirim. Menunggu persetujuan Admin."
+	case "disable":
+		targetPlan = models.PlanPendingDisable
+		message = "Permintaan penonaktifan akun telah dikirim. Menunggu persetujuan Admin."
+	}
+
+	if err := database.DB.Model(&sub).Update("plan_type", targetPlan).Error; err != nil {
+		utils.InternalError(c, "Gagal mengirim permintaan.")
 		return
 	}
 
 	utils.OK(c, gin.H{
-		"message":        "Permintaan upgrade ke Premium telah dikirim. Tim kami akan menghubungi Anda dalam 1×24 jam.",
-		"requested_plan": req.PlanType,
+		"message": message,
+		"status":  targetPlan,
 	})
 }

@@ -50,6 +50,16 @@ func ListProperties(c *gin.Context) {
 		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+q+"%", "%"+q+"%")
 	}
 
+	// Geospatial radius filter (earthdistance)
+	if lat := c.Query("latitude"); lat != "" {
+		if lng := c.Query("longitude"); lng != "" {
+			radius := c.DefaultQuery("radius_km", "10")
+			query = query.
+				Where("latitude IS NOT NULL AND longitude IS NOT NULL").
+				Where(`earth_box(ll_to_earth(?, ?), ? * 1000) @> ll_to_earth(latitude, longitude)`, lat, lng, radius)
+		}
+	}
+
 	// Sort
 	sort := c.DefaultQuery("sort", "created_at")
 	order := c.DefaultQuery("order", "desc")

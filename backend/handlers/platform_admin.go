@@ -17,7 +17,7 @@ import (
 // ==================== PLATFORM ADMIN ====================
 
 func AdminDashboard(c *gin.Context) {
-	var totalTenants, activeTenants, suspendedTenants, totalUsers, totalListings, pendingReviews int64
+	var totalTenants, activeTenants, suspendedTenants, totalUsers, totalListings, pendingReviews, pendingUpgrades int64
 
 	database.DB.Model(&models.Tenant{}).Count(&totalTenants)
 	database.DB.Model(&models.Tenant{}).Where("status = ?", models.TenantStatusActive).Count(&activeTenants)
@@ -25,6 +25,8 @@ func AdminDashboard(c *gin.Context) {
 	database.DB.Model(&models.User{}).Count(&totalUsers)
 	database.DB.Model(&models.PropertyListing{}).Count(&totalListings)
 	database.DB.Model(&models.PropertyListing{}).Where("status = ?", models.ListingStatusPending).Count(&pendingReviews)
+	database.DB.Model(&models.Subscription{}).Where("plan_type IN ?",
+		[]string{models.PlanPendingUpgrade, models.PlanPendingFree, models.PlanPendingDisable}).Count(&pendingUpgrades)
 
 	statusCount := map[string]int64{}
 	statuses := []string{models.ListingStatusDraft, models.ListingStatusPending, models.ListingStatusApproved,
@@ -39,6 +41,7 @@ func AdminDashboard(c *gin.Context) {
 		"total_tenants":     totalTenants,
 		"active_tenants":    activeTenants,
 		"suspended_tenants": suspendedTenants,
+		"pending_upgrades":  pendingUpgrades,
 		"total_users":       totalUsers,
 		"total_listings":    totalListings,
 		"pending_reviews":   pendingReviews,
@@ -276,6 +279,46 @@ func AdminActivateTenant(c *gin.Context) {
 		"id":      id,
 		"status":  models.TenantStatusActive,
 		"message": "Tenant berhasil diaktifkan kembali.",
+	})
+}
+
+func AdminDeleteTenant(c *gin.Context) {
+	id, _ := uuid.Parse(c.Param("id"))
+
+	var tenant models.Tenant
+	if err := database.DB.First(&tenant, "id = ?", id).Error; err != nil {
+		utils.NotFound(c, "RES_TENANT_NOT_FOUND", "Tenant tidak ditemukan.")
+		return
+	}
+
+	tx := database.DB.Begin()
+
+	// 1. Delete listings first (FK listings→salesman is ON DELETE RESTRICT)
+	if err := tx.Unscoped().Where("tenant_id = ?", id).Delete(&models.PropertyListing{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus listing.")
+		return
+	}
+
+	// 2. Delete users (salesmen + tenant admin)
+	if err := tx.Where("tenant_id = ?", id).Delete(&models.User{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus pengguna.")
+		return
+	}
+
+	// 3. Hard-delete tenant — DB cascade: subscriptions (ON DELETE CASCADE)
+	if err := tx.Unscoped().Delete(&tenant).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus tenant.")
+		return
+	}
+
+	tx.Commit()
+
+	utils.OK(c, gin.H{
+		"id":      id,
+		"message": "Tenant dan semua data terkait berhasil dihapus.",
 	})
 }
 

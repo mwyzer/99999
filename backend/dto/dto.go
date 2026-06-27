@@ -104,7 +104,7 @@ type AddSalesmanRequest struct {
 }
 
 type RequestUpgradeRequest struct {
-	PlanType string `json:"plan_type" binding:"required,oneof=premium"`
+	PlanType string `json:"plan_type" binding:"required,oneof=free premium disable"`
 }
 
 // ==================== PLATFORM ADMIN ====================

@@ -42,6 +42,9 @@ export default function PropertyFilter({ onFilter, cities }) {
     city: "",
     price_min: "",
     price_max: "",
+    latitude: "",
+    longitude: "",
+    radius_km: "10",
   });
   const [sort, setSort] = useState("created_at-desc");
 
@@ -52,6 +55,7 @@ export default function PropertyFilter({ onFilter, cities }) {
     if (filters.source_type) c++;
     if (filters.city) c++;
     if (filters.price_min || filters.price_max) c++;
+    if (filters.latitude && filters.longitude) c++;
     return c;
   }, [filters]);
 
@@ -81,6 +85,9 @@ export default function PropertyFilter({ onFilter, cities }) {
       city: "",
       price_min: "",
       price_max: "",
+      latitude: "",
+      longitude: "",
+      radius_km: "10",
     });
     setSort("created_at-desc");
     onFilter({ sort: "created_at", order: "desc" });
@@ -190,6 +197,29 @@ export default function PropertyFilter({ onFilter, cities }) {
               </option>
             ))}
           </select>
+          {/* Radius slider */}
+          <div className="col-span-full sm:col-span-2 space-y-1">
+            <label className="text-xs text-gray-500 flex items-center justify-between">
+              <span>📍 Radius Pencarian</span>
+              <span className="font-medium text-primary-600">
+                {filters.radius_km} km
+              </span>
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="50"
+              step="1"
+              value={filters.radius_km}
+              onChange={(e) => handleChange("radius_km", e.target.value)}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+            />
+            <div className="flex justify-between text-[10px] text-gray-400">
+              <span>1 km</span>
+              <span>25 km</span>
+              <span>50 km</span>
+            </div>
+          </div>
           <div className="col-span-full flex items-center justify-between">
             {activeCount > 0 && (
               <span className="text-xs text-primary-600 bg-primary-50 px-2 py-1 rounded-full">
