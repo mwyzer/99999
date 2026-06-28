@@ -79,6 +79,7 @@ func autoMigrate() error {
 		&models.User{},
 		&models.TenantUser{},
 		&models.SubscriptionPlan{},
+		&models.Subscription{},
 		&models.TenantSubscription{},
 		&models.PropertyType{},
 		&models.Location{},

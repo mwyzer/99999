@@ -122,8 +122,9 @@ func AdminCreateTenant(c *gin.Context) {
 		return
 	}
 
-	// Check email unique
-	if err := database.DB.Where("email = ?", req.AdminEmail).First(&existing).Error; err == nil {
+	// Check email unique (search the User table, not Tenant)
+	var existingUser models.User
+	if err := database.DB.Where("email = ?", req.AdminEmail).First(&existingUser).Error; err == nil {
 		utils.Conflict(c, "AUTH_EMAIL_REGISTERED", "Email admin sudah terdaftar.")
 		return
 	}
@@ -300,15 +301,37 @@ func AdminDeleteTenant(c *gin.Context) {
 		return
 	}
 
-	// 2. Delete users (salesmen + tenant admin)
+	// 2. Delete users (salesmen + tenant admin) — soft delete
 	if err := tx.Where("tenant_id = ?", id).Delete(&models.User{}).Error; err != nil {
 		tx.Rollback()
 		utils.InternalError(c, "Gagal menghapus pengguna.")
 		return
 	}
 
-	// 3. Hard-delete tenant — DB cascade: subscriptions (ON DELETE CASCADE)
-	if err := tx.Unscoped().Delete(&tenant).Error; err != nil {
+	// 3. Delete junction / dependent rows (GORM AutoMigrate uses NO ACTION FKs, not CASCADE)
+	if err := tx.Where("tenant_id = ?", id).Delete(&models.TenantUser{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus relasi tenant-user.")
+		return
+	}
+	if err := tx.Where("tenant_id = ?", id).Delete(&models.Subscription{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus subscription.")
+		return
+	}
+	if err := tx.Where("tenant_id = ?", id).Delete(&models.TenantSubscription{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus tenant subscription.")
+		return
+	}
+	if err := tx.Where("tenant_id = ?", id).Delete(&models.AuditLog{}).Error; err != nil {
+		tx.Rollback()
+		utils.InternalError(c, "Gagal menghapus audit log.")
+		return
+	}
+
+	// 4. Soft-delete tenant (sets deleted_at, recoverable)
+	if err := tx.Delete(&tenant).Error; err != nil {
 		tx.Rollback()
 		utils.InternalError(c, "Gagal menghapus tenant.")
 		return
